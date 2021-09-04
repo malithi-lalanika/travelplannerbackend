@@ -5,6 +5,7 @@ module.exports = {
     SignUpctrl: (req, res) => {
         const body = req.body;
         SignUp(
+          body.username,
           body.email,
           body.password,
           (err, result) => {

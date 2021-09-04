@@ -1,17 +1,20 @@
-const User = require('../models/userModle')
+const {User,}= require('../models/userModle')
 
 module.exports = {
 
-    SignUp(memail, mpassword, callback) {
-        User.findOne({email:memail},
+    SignUp(musername,memail, mpassword, callback) {
+        User.findOne({Email:memail},
           (err, user) => {
             if (err) {
               return callback(err);
             } else {
                 if(user==null){
+                  //console.log(user);
                     const user = User({
-                        email:memail,
-                        password:mpassword
+                      Username:musername,
+                        Email:memail,
+                        Password:mpassword,
+                        
                     })
 
                     user.save(
@@ -19,6 +22,7 @@ module.exports = {
                           if (err) {
                             return callback(err);
                           } else {
+                            console.log("bsh");
                             return callback(null, user);
                           }
                         }
@@ -36,7 +40,7 @@ module.exports = {
 
 
       SignIn(memail, mpassword, callback) {
-        User.findOne({email:memail,password:mpassword},(err,user)=>{
+        User.findOne({Email:memail,Password:mpassword},(err,user)=>{
             if(err){
                 //console.log("errrr");
                 console.log(err)

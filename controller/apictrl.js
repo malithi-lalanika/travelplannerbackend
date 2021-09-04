@@ -52,8 +52,8 @@ module.exports = {
   getFlightRates: (req, res) => {
     const body = req.body;
     amadeus.shopping.flightDates.get({
-        origin: body.origin, 
-        destination: body.destination, 
+        origin: body.origin_code, 
+        destination: body.destination_code, 
     
   }).then(function (response) { 
     console.log(response.data);
@@ -79,44 +79,50 @@ module.exports = {
   });
 },
 
-getAnotherRecommend: (req, res) => {
-    const body = req.body;
-    amadeus.referenceData.recommendedLocations.get({
-        cityCodes: body.cityCodes,
-        travelerCountryCode: body.travelerCountryCode
-      }).then(function (response) { 
-    console.log(response.data);
-    //res.send(response.data);
-    const arr=response.data;
-      var jsonss = new Array();
-      arr.forEach(obj => {
-        var json1={ name:obj.name};
-        jsonss.push(json1);
+// getAnotherRecommend: (req, res) => {
+//     const body = req.body;
+//     amadeus.referenceData.recommendedLocations.get({
+//         cityCodes: body.cityCodes,
+//         travelerCountryCode: body.travelerCountryCode
+//       }).then(function (response) { 
+//     console.log(response.data);
+//     //res.send(response.data);
+//     const arr=response.data;
+//       var jsonss = new Array();
+//       arr.forEach(obj => {
+//         var json1={ name:obj.name};
+//         jsonss.push(json1);
 
-    });
-    res.json({
-        sucess: 1,
-        message: jsonss,
-      });
-  }).catch(function (responseError) { 
-    console.log(JSON.stringify(responseError)); 
-    //res.send("There is no Flights From given Origin to Destination");
-    res.json({
-        sucess: 0,
-        message: "There is no Recommended Locations",
-      });
-  });
-},
+//     });
+//     res.json({
+//         sucess: 1,
+//         message: jsonss,
+//       });
+//   }).catch(function (responseError) { 
+//     console.log(JSON.stringify(responseError)); 
+//     //res.send("There is no Flights From given Origin to Destination");
+//     res.json({
+//         sucess: 0,
+//         message: "There is no Recommended Locations",
+//       });
+//   });
+// },
 
 getSafety: (req, res) => {
     const body = req.body;
-    amadeus.safety.safetyRatedLocation(body.locationid).get().then(function (response) { 
-    console.log(response.data.safetyScores);
+
+    amadeus.safety.safetyRatedLocations.get({
+      latitude: body.latitude,
+      longitude: body.longitude
+    }).then(function (response) { 
+      var arr=response.data;
+      console.log(arr[0].safetyScores);
+    //console.log(response.data.safetyScores);
     //res.send(response.data);
     
     res.json({
         sucess: 1,
-        message: response.data.safetyScores,
+        message: arr[0].safetyScores,
       });
   }).catch(function (responseError) { 
     console.log(JSON.stringify(responseError)); 
@@ -150,7 +156,7 @@ axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}
   });
 },
 
-getAttractionsByName: (req, res) => {
+getAttractionslistByName: (req, res) => {
   const body = req.body;
   var place=body.place;
   var options = {
@@ -181,7 +187,7 @@ getAttractionsByName: (req, res) => {
           
       if(obj.result_type=='things_to_do'){
         //console.log(obj);
-        var json1={name:obj.result_object.name, imagelink:obj.result_object.photo.images.small.url};
+        var json1={name:obj.result_object.name,location_id:obj.result_object.location_id ,imagelink:obj.result_object.photo.images.small.url,latitude:obj.result_object.latitude,longitude:obj.result_object.longitude,reviews:obj.result_object.num_reviews};
         jsonss.push(json1);
       
       }
@@ -203,7 +209,7 @@ getAttractionsByName: (req, res) => {
   
 },
 
-getAccomodationsByName: (req, res) => {
+getAccomodationslistByName: (req, res) => {
   const body = req.body;
   var place=body.place;
   var options = {
@@ -233,17 +239,61 @@ getAccomodationsByName: (req, res) => {
       obj=arr[i];
           
       if(obj.result_type=='restaurants' || obj.result_type=='lodging'){
-        //console.log(obj);
-        var json1={name:obj.result_object.name, imagelink:obj.result_object.photo.images.small.url};
+        console.log(obj.result_object.geo_description);
+        var json1={name:obj.result_object.name,location_id:obj.result_object.location_id ,imagelink:obj.result_object.photo.images.small.url,latitude:obj.result_object.latitude,longitude:obj.result_object.longitude,reviews:obj.result_object.num_reviews};
         jsonss.push(json1);
       
       }
     }
   
-  console.log(jsonss);
+  //console.log(jsonss);
   res.json({
     sucess: 1,
     message: jsonss,
+  });
+  
+  }).catch(function (error) {
+    console.error(error);
+    res.json({
+      sucess: 0,
+      message: "There is no  Attractions as given input",
+    });
+  });
+  
+},
+
+getDetailsWhenClickSpecificLocation: (req, res) => {
+  const body = req.body;
+  var locationId=body.location_id;
+  var options = {
+    method: 'GET',
+    url: 'https://travel-advisor.p.rapidapi.com/attractions/get-details',
+    params: {location_id: locationId},
+    headers: {
+      'x-rapidapi-host': 'travel-advisor.p.rapidapi.com',
+      'x-rapidapi-key': '3233a747edmsh73d2adeb09d5483p1fa690jsn8a90ceccefb5'
+    }
+  };
+  
+  axios.request(options).then(function (response) {
+  
+  //	console.log(response.data);
+    const place=response.data;
+    //console.log(place.name);
+  var details={name:place.name,
+    location_id:place.location_id,
+    latitude:place.latitude,
+    longitude:place.longitude,
+    reviews:place.num_reviews,
+    imagelink:place.photo.images.small.url,
+    rating:place.rating,
+    description:place.description,
+    ranking_category:place.ranking_category,
+  };
+  
+  res.json({
+    sucess: 1,
+    message: details,
   });
   
   }).catch(function (error) {
