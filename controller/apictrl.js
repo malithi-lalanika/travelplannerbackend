@@ -52,8 +52,8 @@ module.exports = {
   getFlightRates: (req, res) => {
     const body = req.body;
     amadeus.shopping.flightDates.get({
-        origin: "MAD", 
-        destination: "MUC", 
+        origin: body.origin, 
+        destination: body.destination, 
     
   }).then(function (response) { 
     console.log(response.data);
