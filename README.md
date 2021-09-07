@@ -1,7 +1,7 @@
 01) go to project directory
 npm install
 
-02) then,
+02) then Run,
 nodemon index.js
 
 Endpoints:
